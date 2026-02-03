@@ -28,13 +28,13 @@ export default function SignupPage() {
     e.preventDefault()
     setError(null)
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters')
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
       return
     }
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters')
       return
     }
 
@@ -79,62 +79,94 @@ export default function SignupPage() {
           </h1>
 
           {error && (
-            <div style={{
-              background: '#fee2e2',
-              color: '#dc2626',
-              padding: '0.75rem',
-              borderRadius: 8,
-              marginBottom: '1rem'
-            }}>
+            <div
+              style={{
+                background: '#fee2e2',
+                color: '#dc2626',
+                padding: '0.75rem',
+                borderRadius: 8,
+                marginBottom: '1rem',
+                fontSize: 14
+              }}
+            >
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
-            <label>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
-
-            <label>Password</label>
-            <div style={{ position: 'relative' }}>
+            {/* Email */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label>Email</label>
               <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
+                style={{ width: '100%' }}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{ position: 'absolute', right: 8, top: 6 }}
-              >
-                {showPassword ? 'Hide' : 'Show'}
-              </button>
             </div>
 
-            <p style={{ fontSize: 12, color: password.length >= 8 ? 'green' : '#64748b' }}>
-              {password.length}/8 characters minimum
-            </p>
+            {/* Password */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label>Password</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  style={{ width: '100%', paddingRight: 50 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: 8,
+                    top: 6,
+                    fontSize: 12
+                  }}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
 
-            <label>Confirm Password</label>
-            <div style={{ position: 'relative' }}>
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                style={{ position: 'absolute', right: 8, top: 6 }}
+              <p
+                style={{
+                  fontSize: 12,
+                  color: password.length >= 8 ? 'green' : '#64748b'
+                }}
               >
-                {showConfirmPassword ? 'Hide' : 'Show'}
-              </button>
+                {password.length}/8 characters minimum
+              </p>
+            </div>
+
+            {/* Confirm Password */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label>Confirm Password</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  style={{ width: '100%', paddingRight: 50 }}
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowConfirmPassword(!showConfirmPassword)
+                  }
+                  style={{
+                    position: 'absolute',
+                    right: 8,
+                    top: 6,
+                    fontSize: 12
+                  }}
+                >
+                  {showConfirmPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
             </div>
 
             <button

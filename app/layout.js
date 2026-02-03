@@ -1,4 +1,5 @@
 import './globals.css'
+import { Providers } from './providers'
 
 export const metadata = {
   title: 'StockPulse - Restaurant Inventory Tracker',
@@ -10,15 +11,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <header className="header">
-          <div className="container header-content">
-            <div className="logo">StockPulse</div>
-            <nav>
-              <button className="btn btn-outline">Settings</button>
-            </nav>
-          </div>
-        </header>
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   )

@@ -1,9 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../lib/AuthContext'
 
 export default function Home() {
+  const { user, organization, loading: authLoading } = useAuth()
+  const router = useRouter()
+
   const [inventory, setInventory] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -17,17 +22,34 @@ export default function Home() {
     min_stock: ''
   })
 
+  // Auth protection
   useEffect(() => {
-    fetchInventory()
-  }, [])
+    if (!authLoading) {
+      if (!user) {
+        router.push('/login')
+      } else if (!organization) {
+        router.push('/onboarding')
+      }
+    }
+  }, [user, organization, authLoading, router])
+
+  // Fetch inventory when organization is available
+  useEffect(() => {
+    if (organization) {
+      fetchInventory()
+    }
+  }, [organization])
 
   async function fetchInventory() {
+    if (!organization) return
+
     setLoading(true)
     setError(null)
 
     const { data, error } = await supabase
       .from('inventory')
       .select('*')
+      .eq('organization_id', organization.id)
       .order('name')
 
     if (error) {
@@ -80,6 +102,7 @@ export default function Home() {
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (!organization) return
 
     const itemData = {
       name: formData.name,
@@ -94,6 +117,7 @@ export default function Home() {
         .from('inventory')
         .update(itemData)
         .eq('id', editItem.id)
+        .eq('organization_id', organization.id)
 
       if (error) {
         console.error('Update error:', error.message)
@@ -103,7 +127,7 @@ export default function Home() {
     } else {
       const { error } = await supabase
         .from('inventory')
-        .insert([itemData])
+        .insert([{ ...itemData, organization_id: organization.id }])
 
       if (error) {
         console.error('Insert error:', error.message)
@@ -117,12 +141,15 @@ export default function Home() {
   }
 
   async function updateQuantity(item, change) {
+    if (!organization) return
+
     const newQuantity = Math.max(0, item.quantity + change)
 
     const { error } = await supabase
       .from('inventory')
       .update({ quantity: newQuantity })
       .eq('id', item.id)
+      .eq('organization_id', organization.id)
 
     if (error) {
       console.error('Quantity update error:', error.message)
@@ -131,6 +158,17 @@ export default function Home() {
     }
 
     await fetchInventory()
+  }
+
+  // Show loading while checking auth
+  if (authLoading || !user || !organization) {
+    return (
+      <main className="main">
+        <div className="container">
+          <p>Loading...</p>
+        </div>
+      </main>
+    )
   }
 
   if (loading) {

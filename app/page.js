@@ -3,21 +3,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
-// Sample data for demo (used when Supabase is not configured)
-const sampleInventory = [
-  { id: 1, name: 'Chicken Breast', category: 'Proteins', quantity: 45, unit: 'lbs', min_stock: 20, updated_at: new Date().toISOString() },
-  { id: 2, name: 'Salmon Fillet', category: 'Proteins', quantity: 12, unit: 'lbs', min_stock: 15, updated_at: new Date().toISOString() },
-  { id: 3, name: 'Olive Oil', category: 'Pantry', quantity: 8, unit: 'bottles', min_stock: 5, updated_at: new Date().toISOString() },
-  { id: 4, name: 'Tomatoes', category: 'Produce', quantity: 30, unit: 'lbs', min_stock: 25, updated_at: new Date().toISOString() },
-  { id: 5, name: 'Lettuce', category: 'Produce', quantity: 5, unit: 'heads', min_stock: 10, updated_at: new Date().toISOString() },
-  { id: 6, name: 'Mozzarella', category: 'Dairy', quantity: 18, unit: 'lbs', min_stock: 10, updated_at: new Date().toISOString() },
-  { id: 7, name: 'Heavy Cream', category: 'Dairy', quantity: 3, unit: 'gallons', min_stock: 5, updated_at: new Date().toISOString() },
-  { id: 8, name: 'Pasta', category: 'Pantry', quantity: 40, unit: 'lbs', min_stock: 20, updated_at: new Date().toISOString() },
-]
-
 export default function Home() {
   const [inventory, setInventory] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [editItem, setEditItem] = useState(null)
   const [formData, setFormData] = useState({
@@ -33,22 +22,23 @@ export default function Home() {
   }, [])
 
   async function fetchInventory() {
-    try {
-      // Try to fetch from Supabase
-      const { data, error } = await supabase
-        .from('inventory')
-        .select('*')
-        .order('name')
+    setLoading(true)
+    setError(null)
 
-      if (error) throw error
+    const { data, error } = await supabase
+      .from('inventory')
+      .select('*')
+      .order('name')
+
+    if (error) {
+      console.error('Supabase fetch error:', error.message)
+      setError(error.message)
+      setInventory([])
+    } else {
       setInventory(data || [])
-    } catch (error) {
-      // Use sample data if Supabase is not configured
-      console.log('Using sample data:', error.message)
-      setInventory(sampleInventory)
-    } finally {
-      setLoading(false)
     }
+
+    setLoading(false)
   }
 
   function getStockStatus(item) {
@@ -96,61 +86,51 @@ export default function Home() {
       category: formData.category,
       quantity: parseFloat(formData.quantity),
       unit: formData.unit,
-      min_stock: parseFloat(formData.min_stock),
-      updated_at: new Date().toISOString()
+      min_stock: parseFloat(formData.min_stock)
     }
 
-    try {
-      if (editItem) {
-        // Update existing item
-        const { error } = await supabase
-          .from('inventory')
-          .update(itemData)
-          .eq('id', editItem.id)
+    if (editItem) {
+      const { error } = await supabase
+        .from('inventory')
+        .update(itemData)
+        .eq('id', editItem.id)
 
-        if (error) throw error
-      } else {
-        // Add new item
-        const { error } = await supabase
-          .from('inventory')
-          .insert([itemData])
-
-        if (error) throw error
+      if (error) {
+        console.error('Update error:', error.message)
+        alert('Failed to update item: ' + error.message)
+        return
       }
+    } else {
+      const { error } = await supabase
+        .from('inventory')
+        .insert([itemData])
 
-      await fetchInventory()
-      setShowModal(false)
-    } catch (error) {
-      // Handle locally if Supabase is not configured
-      console.log('Handling locally:', error.message)
-      if (editItem) {
-        setInventory(inventory.map(item =>
-          item.id === editItem.id ? { ...item, ...itemData } : item
-        ))
-      } else {
-        setInventory([...inventory, { ...itemData, id: Date.now() }])
+      if (error) {
+        console.error('Insert error:', error.message)
+        alert('Failed to add item: ' + error.message)
+        return
       }
-      setShowModal(false)
     }
+
+    await fetchInventory()
+    setShowModal(false)
   }
 
   async function updateQuantity(item, change) {
     const newQuantity = Math.max(0, item.quantity + change)
 
-    try {
-      const { error } = await supabase
-        .from('inventory')
-        .update({ quantity: newQuantity, updated_at: new Date().toISOString() })
-        .eq('id', item.id)
+    const { error } = await supabase
+      .from('inventory')
+      .update({ quantity: newQuantity })
+      .eq('id', item.id)
 
-      if (error) throw error
-      await fetchInventory()
-    } catch (error) {
-      // Handle locally
-      setInventory(inventory.map(i =>
-        i.id === item.id ? { ...i, quantity: newQuantity, updated_at: new Date().toISOString() } : i
-      ))
+    if (error) {
+      console.error('Quantity update error:', error.message)
+      alert('Failed to update quantity: ' + error.message)
+      return
     }
+
+    await fetchInventory()
   }
 
   if (loading) {
@@ -158,6 +138,22 @@ export default function Home() {
       <main className="main">
         <div className="container">
           <p>Loading inventory...</p>
+        </div>
+      </main>
+    )
+  }
+
+  if (error) {
+    return (
+      <main className="main">
+        <div className="container">
+          <div className="card">
+            <h2 className="card-title" style={{ color: '#dc2626' }}>Connection Error</h2>
+            <p>{error}</p>
+            <button className="btn btn-primary" onClick={fetchInventory} style={{ marginTop: '1rem' }}>
+              Retry
+            </button>
+          </div>
         </div>
       </main>
     )

@@ -28,13 +28,13 @@ export default function SignupPage() {
     e.preventDefault()
     setError(null)
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters')
       return
     }
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters')
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
       return
     }
 
@@ -51,19 +51,27 @@ export default function SignupPage() {
   }
 
   if (authLoading) {
-    return <p style={{ textAlign: 'center', marginTop: '4rem' }}>Loading…</p>
+    return (
+      <main className="main">
+        <div className="container">
+          <p>Loading…</p>
+        </div>
+      </main>
+    )
   }
 
   if (success) {
     return (
       <main className="main">
-        <div className="container" style={{ maxWidth: 400, marginTop: '4rem' }}>
+        <div className="container" style={{ maxWidth: 420 }}>
           <div className="card" style={{ textAlign: 'center' }}>
-            <h1>Check your email</h1>
-            <p>
+            <h1 style={{ marginBottom: '1rem' }}>Check your email</h1>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
               We sent a confirmation link to <strong>{email}</strong>.
             </p>
-            <Link href="/login">Back to sign in</Link>
+            <Link href="/login" className="btn btn-primary">
+              Back to sign in
+            </Link>
           </div>
         </div>
       </main>
@@ -72,7 +80,7 @@ export default function SignupPage() {
 
   return (
     <main className="main">
-      <div className="container" style={{ maxWidth: 400, marginTop: '4rem' }}>
+      <div className="container" style={{ maxWidth: 420 }}>
         <div className="card">
           <h1 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
             Create your account
@@ -84,9 +92,9 @@ export default function SignupPage() {
                 background: '#fee2e2',
                 color: '#dc2626',
                 padding: '0.75rem',
-                borderRadius: 8,
+                borderRadius: '8px',
                 marginBottom: '1rem',
-                fontSize: 14
+                fontSize: '0.875rem',
               }}
             >
               {error}
@@ -95,36 +103,43 @@ export default function SignupPage() {
 
           <form onSubmit={handleSubmit}>
             {/* Email */}
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Email</label>
+            <div className="form-group">
+              <label className="form-label">Email</label>
               <input
                 type="email"
+                className="form-input"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                style={{ width: '100%' }}
               />
             </div>
 
             {/* Password */}
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Password</label>
+            <div className="form-group">
+              <label className="form-label">Password</label>
+
               <div style={{ position: 'relative' }}>
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  className="form-input"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  style={{ width: '100%', paddingRight: 50 }}
                 />
+
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   style={{
                     position: 'absolute',
-                    right: 8,
-                    top: 6,
-                    fontSize: 12
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    fontSize: '0.875rem',
+                    cursor: 'pointer',
                   }}
                 >
                   {showPassword ? 'Hide' : 'Show'}
@@ -133,8 +148,12 @@ export default function SignupPage() {
 
               <p
                 style={{
-                  fontSize: 12,
-                  color: password.length >= 8 ? 'green' : '#64748b'
+                  marginTop: '0.25rem',
+                  fontSize: '0.75rem',
+                  color:
+                    password.length >= 8
+                      ? 'var(--success)'
+                      : 'var(--text-muted)',
                 }}
               >
                 {password.length}/8 characters minimum
@@ -142,16 +161,18 @@ export default function SignupPage() {
             </div>
 
             {/* Confirm Password */}
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Confirm Password</label>
+            <div className="form-group">
+              <label className="form-label">Confirm Password</label>
+
               <div style={{ position: 'relative' }}>
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
+                  className="form-input"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  style={{ width: '100%', paddingRight: 50 }}
                 />
+
                 <button
                   type="button"
                   onClick={() =>
@@ -159,9 +180,14 @@ export default function SignupPage() {
                   }
                   style={{
                     position: 'absolute',
-                    right: 8,
-                    top: 6,
-                    fontSize: 12
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    fontSize: '0.875rem',
+                    cursor: 'pointer',
                   }}
                 >
                   {showConfirmPassword ? 'Hide' : 'Show'}
@@ -171,15 +197,26 @@ export default function SignupPage() {
 
             <button
               type="submit"
+              className="btn btn-primary"
+              style={{ width: '100%', marginTop: '0.5rem' }}
               disabled={loading}
-              style={{ width: '100%', marginTop: '1rem' }}
             >
-              {loading ? 'Creating…' : 'Create Account'}
+              {loading ? 'Creating account…' : 'Create Account'}
             </button>
           </form>
 
-          <p style={{ textAlign: 'center', marginTop: '1rem' }}>
-            Already have an account? <Link href="/login">Sign in</Link>
+          <p
+            style={{
+              textAlign: 'center',
+              marginTop: '1.25rem',
+              fontSize: '0.875rem',
+              color: 'var(--text-muted)',
+            }}
+          >
+            Already have an account?{' '}
+            <Link href="/login" style={{ color: 'var(--primary)' }}>
+              Sign in
+            </Link>
           </p>
         </div>
       </div>

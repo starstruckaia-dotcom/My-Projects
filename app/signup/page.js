@@ -20,11 +20,7 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      if (organization) {
-        router.push('/')
-      } else {
-        router.push('/onboarding')
-      }
+      router.push(organization ? '/' : '/onboarding')
     }
   }, [user, organization, authLoading, router])
 
@@ -43,7 +39,6 @@ export default function SignupPage() {
     }
 
     setLoading(true)
-
     const { error } = await signUp(email, password)
 
     if (error) {
@@ -56,30 +51,19 @@ export default function SignupPage() {
   }
 
   if (authLoading) {
-    return (
-      <main className="main">
-        <div className="container">
-          <p>Loading...</p>
-        </div>
-      </main>
-    )
+    return <p style={{ textAlign: 'center', marginTop: '4rem' }}>Loading…</p>
   }
 
   if (success) {
     return (
       <main className="main">
-        <div className="container" style={{ maxWidth: '400px', marginTop: '4rem' }}>
+        <div className="container" style={{ maxWidth: 400, marginTop: '4rem' }}>
           <div className="card" style={{ textAlign: 'center' }}>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '1rem' }}>
-              Check your email
-            </h1>
-            <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
-              We’ve sent a confirmation link to <strong>{email}</strong>.
-              Please click the link to verify your account.
+            <h1>Check your email</h1>
+            <p>
+              We sent a confirmation link to <strong>{email}</strong>.
             </p>
-            <Link href="/login" className="btn btn-primary">
-              Back to Sign In
-            </Link>
+            <Link href="/login">Back to sign in</Link>
           </div>
         </div>
       </main>
@@ -88,121 +72,82 @@ export default function SignupPage() {
 
   return (
     <main className="main">
-      <div className="container" style={{ maxWidth: '400px', marginTop: '4rem' }}>
+      <div className="container" style={{ maxWidth: 400, marginTop: '4rem' }}>
         <div className="card">
-          <h1
-            style={{
-              fontSize: '1.5rem',
-              fontWeight: '600',
-              marginBottom: '1.5rem',
-              textAlign: 'center'
-            }}
-          >
+          <h1 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
             Create your account
           </h1>
 
           {error && (
-            <div
-              style={{
-                background: '#fee2e2',
-                color: '#dc2626',
-                padding: '0.75rem',
-                borderRadius: '8px',
-                marginBottom: '1rem',
-                fontSize: '0.875rem'
-              }}
-            >
+            <div style={{
+              background: '#fee2e2',
+              color: '#dc2626',
+              padding: '0.75rem',
+              borderRadius: 8,
+              marginBottom: '1rem'
+            }}>
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="form-label">Email</label>
+            <label>Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
+
+            <label>Password</label>
+            <div style={{ position: 'relative' }}>
               <input
-                type="email"
-                className="form-input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
                 required
               />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  className="form-input pr-10"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500"
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
-              </div>
-              <p
-                className={`text-sm mt-1 ${
-                  password.length >= 8 ? 'text-green-600' : 'text-gray-500'
-                }`}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ position: 'absolute', right: 8, top: 6 }}
               >
-                {password.length}/8 characters minimum
-              </p>
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Confirm Password</label>
-              <div className="relative">
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  className="form-input pr-10"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500"
-                >
-                  {showConfirmPassword ? 'Hide' : 'Show'}
-                </button>
-              </div>
+            <p style={{ fontSize: 12, color: password.length >= 8 ? 'green' : '#64748b' }}>
+              {password.length}/8 characters minimum
+            </p>
 
-              {confirmPassword.length > 0 && password !== confirmPassword && (
-                <p className="text-sm text-red-500 mt-1">
-                  Passwords do not match
-                </p>
-              )}
+            <label>Confirm Password</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={{ position: 'absolute', right: 8, top: 6 }}
+              >
+                {showConfirmPassword ? 'Hide' : 'Show'}
+              </button>
             </div>
 
             <button
               type="submit"
-              className="btn btn-primary"
-              style={{ width: '100%', marginTop: '1rem' }}
               disabled={loading}
+              style={{ width: '100%', marginTop: '1rem' }}
             >
-              {loading ? 'Creating account...' : 'Create Account'}
+              {loading ? 'Creating…' : 'Create Account'}
             </button>
           </form>
 
-          <p
-            style={{
-              textAlign: 'center',
-              marginTop: '1.5rem',
-              color: '#64748b',
-              fontSize: '0.875rem'
-            }}
-          >
-            Already have an account?{' '}
-            <Link href="/login" style={{ color: '#2563eb', fontWeight: '500' }}>
-              Sign in
-            </Link>
+          <p style={{ textAlign: 'center', marginTop: '1rem' }}>
+            Already have an account? <Link href="/login">Sign in</Link>
           </p>
         </div>
       </div>

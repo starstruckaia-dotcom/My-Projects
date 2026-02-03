@@ -88,6 +88,7 @@ export default function LoginPage() {
 
             <div className="form-group">
               <label className="form-label">Password</label>
+
               <div style={{ position: 'relative' }}>
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -96,6 +97,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -113,6 +115,19 @@ export default function LoginPage() {
                 >
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
+              </div>
+
+              <div style={{ textAlign: 'right', marginTop: '0.25rem' }}>
+                <Link
+                  href="/reset-password"
+                  style={{
+                    fontSize: '0.75rem',
+                    color: 'var(--primary)',
+                    fontWeight: 500
+                  }}
+                >
+                  Forgot password?
+                </Link>
               </div>
             </div>
 

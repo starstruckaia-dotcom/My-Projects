@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { CURRENT_RESTAURANT_ID } from '../lib/config'
 
 export default function Home() {
   const [inventory, setInventory] = useState([])
@@ -28,6 +29,7 @@ export default function Home() {
     const { data, error } = await supabase
       .from('inventory')
       .select('*')
+      .eq('restaurant_id', CURRENT_RESTAURANT_ID)
       .order('name')
 
     if (error) {
@@ -94,6 +96,7 @@ export default function Home() {
         .from('inventory')
         .update(itemData)
         .eq('id', editItem.id)
+        .eq('restaurant_id', CURRENT_RESTAURANT_ID)
 
       if (error) {
         console.error('Update error:', error.message)
@@ -103,7 +106,7 @@ export default function Home() {
     } else {
       const { error } = await supabase
         .from('inventory')
-        .insert([itemData])
+        .insert([{ ...itemData, restaurant_id: CURRENT_RESTAURANT_ID }])
 
       if (error) {
         console.error('Insert error:', error.message)
@@ -123,6 +126,7 @@ export default function Home() {
       .from('inventory')
       .update({ quantity: newQuantity })
       .eq('id', item.id)
+      .eq('restaurant_id', CURRENT_RESTAURANT_ID)
 
     if (error) {
       console.error('Quantity update error:', error.message)

@@ -1,0 +1,133 @@
+{
+  "name": "StockPulse Low Stock Alerts",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM inventory WHERE quantity <= min_stock ORDER BY (quantity / min_stock) ASC"
+      },
+      "id": "supabase-query",
+      "name": "Get Low Stock Items",
+      "type": "n8n-nodes-base.supabase",
+      "position": [450, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Supabase Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.length }}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "if-has-items",
+      "name": "Has Low Stock?",
+      "type": "n8n-nodes-base.if",
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "channel": "#inventory-alerts",
+        "text": "=:warning: *Low Stock Alert*\n\nThe following items need restocking:\n\n{{ $json.map(item => `• *${item.name}*: ${item.quantity} ${item.unit} (min: ${item.min_stock})`).join('\\n') }}",
+        "otherOptions": {}
+      },
+      "id": "slack-notification",
+      "name": "Send Slack Alert",
+      "type": "n8n-nodes-base.slack",
+      "position": [850, 200],
+      "credentials": {
+        "slackApi": {
+          "id": "YOUR_SLACK_CREDENTIAL_ID",
+          "name": "Slack Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "alerts@stockpulse.app",
+        "toEmail": "manager@restaurant.com",
+        "subject": "StockPulse: Low Stock Alert",
+        "text": "=The following items are running low:\n\n{{ $json.map(item => `${item.name}: ${item.quantity} ${item.unit} (minimum: ${item.min_stock})`).join('\\n') }}\n\nPlease restock these items soon.",
+        "options": {}
+      },
+      "id": "email-notification",
+      "name": "Send Email Alert",
+      "type": "n8n-nodes-base.emailSend",
+      "position": [850, 400],
+      "credentials": {
+        "smtp": {
+          "id": "YOUR_SMTP_CREDENTIAL_ID",
+          "name": "SMTP Account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Low Stock Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Low Stock Items": {
+      "main": [
+        [
+          {
+            "node": "Has Low Stock?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Low Stock?": {
+      "main": [
+        [
+          {
+            "node": "Send Slack Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Email Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

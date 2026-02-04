@@ -2,29 +2,42 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useAuth } from '../../lib/AuthContext'
 
 export default function UpdatePasswordPage() {
+  const router = useRouter()
+  const { user, updatePassword } = useAuth()
+
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
-  const [loading, setLoading] = useState(false)
 
-  const { updatePassword } = useAuth()
-  const router = useRouter()
+  // IMPORTANT:
+  // Do NOT redirect if user is null.
+  // Supabase recovery session counts as authenticated.
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        router.push('/login')
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [success, router])
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters')
+      setError('Password must be at least 8 characters.')
       return
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
+      setError('Passwords do not match.')
       return
     }
 
@@ -38,92 +51,116 @@ export default function UpdatePasswordPage() {
     } else {
       setSuccess(true)
       setLoading(false)
-      setTimeout(() => router.push('/login'), 2000)
     }
   }
 
   return (
     <main className="main">
-      <div className="container" style={{ maxWidth: '400px', marginTop: '4rem' }}>
+      <div className="container" style={{ maxWidth: 400, marginTop: '4rem' }}>
         <div className="card">
           <h1
             style={{
+              textAlign: 'center',
               fontSize: '1.5rem',
               fontWeight: 600,
-              marginBottom: '1.5rem',
-              textAlign: 'center'
+              marginBottom: '1.5rem'
             }}
           >
             Set a new password
           </h1>
 
-          {error && (
-            <div
-              style={{
-                background: '#fee2e2',
-                color: '#dc2626',
-                padding: '0.75rem',
-                borderRadius: '8px',
-                marginBottom: '1rem',
-                fontSize: '0.875rem'
-              }}
-            >
-              {error}
-            </div>
-          )}
-
           {success ? (
-            <p
-              style={{
-                textAlign: 'center',
-                color: 'var(--success)',
-                fontSize: '0.875rem'
-              }}
-            >
-              Password updated. Redirecting to sign in…
-            </p>
+            <>
+              <p
+                style={{
+                  textAlign: 'center',
+                  color: 'var(--success)',
+                  marginBottom: '1.5rem'
+                }}
+              >
+                Password updated successfully.
+              </p>
+              <p
+                style={{
+                  textAlign: 'center',
+                  color: 'var(--text-muted)',
+                  fontSize: '0.875rem'
+                }}
+              >
+                Redirecting to sign in…
+              </p>
+            </>
           ) : (
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label className="form-label">New Password</label>
-                <input
-                  type="password"
-                  className="form-input"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <p
+            <>
+              {error && (
+                <div
                   style={{
-                    fontSize: '0.75rem',
-                    marginTop: '0.25rem',
-                    color: password.length >= 8 ? 'var(--success)' : 'var(--text-muted)'
+                    background: '#fee2e2',
+                    color: '#dc2626',
+                    padding: '0.75rem',
+                    borderRadius: 8,
+                    marginBottom: '1rem',
+                    fontSize: '0.875rem'
                   }}
                 >
-                  {password.length}/8 characters minimum
-                </p>
-              </div>
+                  {error}
+                </div>
+              )}
 
-              <div className="form-group">
-                <label className="form-label">Confirm Password</label>
-                <input
-                  type="password"
-                  className="form-input"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
-              </div>
+              <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label className="form-label">New password</label>
+                  <input
+                    type="password"
+                    className="form-input"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <p
+                    style={{
+                      fontSize: '0.75rem',
+                      marginTop: '0.25rem',
+                      color: 'var(--text-muted)'
+                    }}
+                  >
+                    Minimum 8 characters
+                  </p>
+                </div>
 
-              <button
-                type="submit"
-                className="btn btn-primary"
-                style={{ width: '100%' }}
-                disabled={loading}
+                <div className="form-group">
+                  <label className="form-label">Confirm new password</label>
+                  <input
+                    type="password"
+                    className="form-input"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ width: '100%' }}
+                  disabled={loading}
+                >
+                  {loading ? 'Updating…' : 'Update password'}
+                </button>
+              </form>
+
+              <p
+                style={{
+                  textAlign: 'center',
+                  marginTop: '1.5rem',
+                  fontSize: '0.875rem'
+                }}
               >
-                {loading ? 'Updating…' : 'Update Password'}
-              </button>
-            </form>
+                <Link href="/login" style={{ color: 'var(--primary)' }}>
+                  Back to sign in
+                </Link>
+              </p>
+            </>
           )}
         </div>
       </div>

@@ -11,7 +11,6 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
   const { user, organization, loading: authLoading, signUp } = useAuth()
   const router = useRouter()
 
@@ -41,15 +40,17 @@ export default function SignupPage() {
 
     setLoading(true)
 
-    const { error } = await signUp(email, password)
+    const { data, error } = await signUp(email, password)
 
     if (error) {
       setError(error.message)
       setLoading(false)
-    } else {
-      setSuccess(true)
+    } else if (data?.user && !data?.session) {
+      // Email confirmation is still enabled in Supabase - show message
+      setError('Please check your email to confirm your account, or contact support to disable email confirmation.')
       setLoading(false)
     }
+    // If successful with session, the useEffect will redirect
   }
 
   if (authLoading) {
@@ -57,27 +58,6 @@ export default function SignupPage() {
       <main className="main">
         <div className="container">
           <p>Loading...</p>
-        </div>
-      </main>
-    )
-  }
-
-  if (success) {
-    return (
-      <main className="main">
-        <div className="container" style={{ maxWidth: '400px', marginTop: '4rem' }}>
-          <div className="card" style={{ textAlign: 'center' }}>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '1rem' }}>
-              Check your email
-            </h1>
-            <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
-              We've sent a confirmation link to <strong>{email}</strong>.
-              Please click the link to verify your account.
-            </p>
-            <Link href="/login" className="btn btn-primary">
-              Back to Sign In
-            </Link>
-          </div>
         </div>
       </main>
     )

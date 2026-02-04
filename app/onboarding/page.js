@@ -35,22 +35,41 @@ export default function OnboardingPage() {
     e.preventDefault()
     setError(null)
 
-    if (!name.trim()) {
+    const trimmedName = name.trim()
+    const trimmedSlug = slug.trim()
+
+    if (!trimmedName) {
       setError('Restaurant name is required')
       return
     }
 
-    if (!slug.trim()) {
+    if (!trimmedSlug) {
       setError('URL slug is required')
+      return
+    }
+
+    // Validate slug format
+    if (!/^[a-z0-9-]+$/.test(trimmedSlug)) {
+      setError('Slug can only contain lowercase letters, numbers, and hyphens')
+      return
+    }
+
+    if (trimmedSlug.length < 3) {
+      setError('Slug must be at least 3 characters')
       return
     }
 
     setLoading(true)
 
-    const { error } = await createOrganization(name.trim(), slug.trim())
+    const { error } = await createOrganization(trimmedName, trimmedSlug)
 
     if (error) {
-      setError(error.message)
+      // Handle common errors with user-friendly messages
+      if (error.message?.includes('duplicate') || error.message?.includes('unique') || error.code === '23505') {
+        setError('This URL slug is already taken. Please choose a different one.')
+      } else {
+        setError(error.message || 'Failed to create organization')
+      }
       setLoading(false)
     } else {
       router.push('/')

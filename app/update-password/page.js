@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useAuth } from '../../lib/AuthContext'
 
 export default function UpdatePasswordPage() {
@@ -11,8 +12,15 @@ export default function UpdatePasswordPage() {
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const { updatePassword } = useAuth()
+  const { user, loading: authLoading, isRecoveryMode, updatePassword, signOut } = useAuth()
   const router = useRouter()
+
+  // If not in recovery mode and no user, redirect to login
+  useEffect(() => {
+    if (!authLoading && !user && !isRecoveryMode) {
+      router.push('/login')
+    }
+  }, [authLoading, user, isRecoveryMode, router])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -38,8 +46,37 @@ export default function UpdatePasswordPage() {
     } else {
       setSuccess(true)
       setLoading(false)
+      // Sign out and redirect to login after password update
+      await signOut()
       setTimeout(() => router.push('/login'), 2000)
     }
+  }
+
+  // Show loading while checking auth state
+  if (authLoading) {
+    return (
+      <main className="main">
+        <div className="container">
+          <p>Loading...</p>
+        </div>
+      </main>
+    )
+  }
+
+  // If no user and not in recovery mode, show message
+  if (!user && !isRecoveryMode) {
+    return (
+      <main className="main">
+        <div className="container" style={{ maxWidth: '400px', marginTop: '4rem' }}>
+          <div className="card" style={{ textAlign: 'center' }}>
+            <p>Invalid or expired reset link.</p>
+            <Link href="/reset-password" className="btn btn-primary" style={{ marginTop: '1rem' }}>
+              Request new reset link
+            </Link>
+          </div>
+        </div>
+      </main>
+    )
   }
 
   return (

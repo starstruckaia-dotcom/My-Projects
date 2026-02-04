@@ -1,13 +1,7 @@
 'use client'
 
-import { AuthProvider } from '../lib/AuthContext'
-import Header from './components/Header'
+import { AuthProvider } from './lib/AuthContext'
 
 export function Providers({ children }) {
-  return (
-    <AuthProvider>
-      <Header />
-      {children}
-    </AuthProvider>
-  )
+  return <AuthProvider>{children}</AuthProvider>
 }
